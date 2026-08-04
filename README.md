@@ -2,6 +2,13 @@
 
 Production-ready Next.js product for earthmoving / construction equipment rental companies. Ship once, rebrand per client from the **super admin** panel.
 
+## Live links
+
+| | URL |
+|--|--|
+| **Share with client** | https://axle-fleetrent.vercel.app |
+| **GitHub repo** | https://github.com/ishimwe0427-source/axle-fleetrent |
+
 ## Product features
 
 - Public marketing site + growing fleet catalog (negotiated quotes, no public fixed prices)
