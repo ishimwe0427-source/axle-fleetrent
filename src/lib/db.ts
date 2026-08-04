@@ -14,7 +14,9 @@ import type {
   User,
 } from "./types";
 
-const DATA_DIR = path.join(process.cwd(), "data");
+const DATA_DIR = process.env.VERCEL
+  ? path.join("/tmp", "fleetrent-data")
+  : path.join(process.cwd(), "data");
 const DB_PATH = path.join(DATA_DIR, "db.json");
 
 async function ensureDb(): Promise<Database> {
