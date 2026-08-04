@@ -1,0 +1,94 @@
+@font-face {
+  font-family: "flaticon";
+  src: url("flaticon7f60.ttf?d913d966ac9eec89b5f2899e9b3bcc29") format("truetype"), url("flaticon7f60.woff?d913d966ac9eec89b5f2899e9b3bcc29") format("woff"), url("flaticon7f60.woff2?d913d966ac9eec89b5f2899e9b3bcc29") format("woff2"), url("flaticon7f60.eot?d913d966ac9eec89b5f2899e9b3bcc29#iefix") format("embedded-opentype"), url("flaticon7f60.svg?d913d966ac9eec89b5f2899e9b3bcc29#flaticon") format("svg");
+}
+i[class^=flaticon-]:before, i[class*=" flaticon-"]:before {
+  font-family: flaticon !important;
+  font-style: normal;
+  font-weight: normal !important;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.flaticon-search:before {
+  content: "\f101";
+}
+
+.flaticon-excavator:before {
+  content: "\f102";
+}
+
+.flaticon-presentation:before {
+  content: "\f103";
+}
+
+.flaticon-worker:before {
+  content: "\f104";
+}
+
+.flaticon-salary:before {
+  content: "\f105";
+}
+
+.flaticon-excavator-1:before {
+  content: "\f106";
+}
+
+.flaticon-excavator-2:before {
+  content: "\f107";
+}
+
+.flaticon-placeholder:before {
+  content: "\f108";
+}
+
+.flaticon-building:before {
+  content: "\f109";
+}
+
+.flaticon-worker-1:before {
+  content: "\f10a";
+}
+
+.flaticon-left-quote:before {
+  content: "\f10b";
+}
+
+.flaticon-delivery-truck:before {
+  content: "\f10c";
+}
+
+.flaticon-forklift:before {
+  content: "\f10d";
+}
+
+.flaticon-scissor-lift:before {
+  content: "\f10e";
+}
+
+.flaticon-generator:before {
+  content: "\f10f";
+}
+
+.flaticon-container:before {
+  content: "\f110";
+}
+
+.flaticon-tow-truck:before {
+  content: "\f111";
+}
+
+.flaticon-dumper-truck:before {
+  content: "\f112";
+}
+
+.flaticon-loader:before {
+  content: "\f113";
+}
+
+.flaticon-align:before {
+  content: "\f114";
+}/*# sourceMappingURL=flaticon.css.map */
