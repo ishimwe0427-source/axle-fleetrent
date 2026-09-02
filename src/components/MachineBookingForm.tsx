@@ -100,7 +100,7 @@ export function MachineBookingForm({
             Log in
           </Link>{" "}
           or{" "}
-          <Link href="/register" className="font-semibold underline">
+          <Link href={`/register?next=/fleet/${machine.slug}`} className="font-semibold underline">
             register
           </Link>
           .
@@ -117,6 +117,7 @@ export function MachineBookingForm({
               name="startDate"
               type="date"
               required
+              min={new Date().toISOString().slice(0, 10)}
               className="mt-2 w-full border border-stone-200 px-3 py-2.5 outline-none focus:border-amber-400"
             />
           </label>
@@ -128,6 +129,7 @@ export function MachineBookingForm({
               name="endDate"
               type="date"
               required
+              min={new Date().toISOString().slice(0, 10)}
               className="mt-2 w-full border border-stone-200 px-3 py-2.5 outline-none focus:border-amber-400"
             />
           </label>
@@ -160,7 +162,8 @@ export function MachineBookingForm({
         {error && <p className="text-sm text-red-600">{error}</p>}
         {success && (
           <p className="text-sm text-emerald-700">
-            Booking request sent. Redirecting to your dashboard…
+            Booking received. An official confirmation is being sent to your
+            email. Opening your dashboard…
           </p>
         )}
 

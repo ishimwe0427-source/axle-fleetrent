@@ -35,6 +35,8 @@ export type RentalStatus =
   | "completed"
   | "rejected";
 
+export type EmailDelivery = "sent" | "failed" | "skipped";
+
 export type RentalRequest = {
   id: string;
   userId: string;
@@ -45,6 +47,10 @@ export type RentalRequest = {
   notes: string;
   status: RentalStatus;
   createdAt: string;
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  emailStatus?: EmailDelivery;
 };
 
 export type HeroSlide = {
@@ -88,8 +94,39 @@ export type Branding = {
   showTeam: boolean;
   showGallery: boolean;
   showChat: boolean;
+  sitePublished: boolean;
   footerText: string;
   updatedAt: string;
+};
+
+export type MailSettings = {
+  enabled: boolean;
+  host: string;
+  port: number;
+  secure: boolean;
+  user: string;
+  pass: string;
+  fromName: string;
+  fromEmail: string;
+};
+
+export type EmailLog = {
+  id: string;
+  to: string;
+  subject: string;
+  kind: "booking_received" | "booking_status" | "contact" | "test";
+  status: EmailDelivery;
+  error?: string;
+  rentalId?: string;
+  createdAt: string;
+};
+
+export type ContactMessage = {
+  id: string;
+  name: string;
+  email: string;
+  message: string;
+  createdAt: string;
 };
 
 export type SiteContent = {
@@ -136,6 +173,9 @@ export type Database = {
   branding: Branding;
   chatThreads: ChatThread[];
   chatMessages: ChatMessage[];
+  mailSettings: MailSettings;
+  emailLogs: EmailLog[];
+  contactMessages: ContactMessage[];
 };
 
 export type SessionUser = {
@@ -151,4 +191,11 @@ export function isStaff(role: UserRole): boolean {
 
 export function isSuperAdmin(role: UserRole): boolean {
   return role === "superadmin";
+}
+
+export function isSiteLive(branding: Branding): boolean {
+  const env = process.env.SITE_PUBLISHED;
+  if (env === "true") return true;
+  if (env === "false") return false;
+  return branding.sitePublished;
 }

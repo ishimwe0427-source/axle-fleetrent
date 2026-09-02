@@ -1,10 +1,14 @@
 import type { Metadata } from "next";
 import { Barlow_Condensed, Outfit } from "next/font/google";
+import { headers } from "next/headers";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { BrandTheme } from "@/components/BrandTheme";
 import { ChatWidget } from "@/components/chat/ChatWidget";
+import { PrivatePreview } from "@/components/PrivatePreview";
 import { getBranding, getContent } from "@/lib/db";
+import { getSession } from "@/lib/auth";
+import { isSiteLive, isStaff } from "@/lib/types";
 import "./globals.css";
 
 export const dynamic = "force-dynamic";
@@ -35,21 +39,46 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
+function isOpenPath(pathname: string) {
+  return (
+    pathname.startsWith("/login") ||
+    pathname.startsWith("/register") ||
+    pathname.startsWith("/admin") ||
+    pathname.startsWith("/dashboard") ||
+    pathname.startsWith("/chat") ||
+    pathname.startsWith("/rent")
+  );
+}
+
 export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [content, branding] = await Promise.all([getContent(), getBranding()]);
+  const [content, branding, session] = await Promise.all([
+    getContent(),
+    getBranding(),
+    getSession(),
+  ]);
+  const pathname = (await headers()).get("x-pathname") || "";
+  const live = isSiteLive(branding);
+  const canSeePrivate =
+    live || isOpenPath(pathname) || Boolean(session && isStaff(session.role));
 
   return (
     <html lang="en" className={`${display.variable} ${body.variable} h-full`}>
       <body className="min-h-full flex flex-col antialiased">
         <BrandTheme branding={branding} />
-        <Header branding={branding} />
-        <main className="flex-1">{children}</main>
-        <Footer content={content} branding={branding} />
-        {branding.showChat ? <ChatWidget /> : null}
+        {canSeePrivate ? (
+          <>
+            <Header branding={branding} />
+            <main className="flex-1">{children}</main>
+            <Footer content={content} branding={branding} />
+            {branding.showChat ? <ChatWidget /> : null}
+          </>
+        ) : (
+          <PrivatePreview branding={branding} />
+        )}
       </body>
     </html>
   );

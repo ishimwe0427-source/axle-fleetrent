@@ -33,6 +33,7 @@ const brandingSchema = z.object({
   showTeam: z.boolean().optional(),
   showGallery: z.boolean().optional(),
   showChat: z.boolean().optional(),
+  sitePublished: z.boolean().optional(),
   footerText: z.string().min(1).optional(),
 });
 

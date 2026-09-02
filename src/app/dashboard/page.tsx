@@ -77,6 +77,11 @@ export default async function DashboardPage() {
                       <p className="mt-1 text-sm text-stone-500">
                         {rental.startDate} → {rental.endDate} · {rental.location}
                       </p>
+                      {rental.emailStatus === "sent" && (
+                        <p className="mt-1 text-xs text-emerald-700">
+                          Confirmation email sent
+                        </p>
+                      )}
                     </div>
                     <span
                       className={`inline-flex w-fit rounded-sm px-3 py-1 text-xs uppercase tracking-wider ${

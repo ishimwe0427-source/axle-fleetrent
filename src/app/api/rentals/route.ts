@@ -1,7 +1,13 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { isStaff } from "@/lib/types";
-import { createRental, getRentals, getRentalsByUser } from "@/lib/db";
+import {
+  createRental,
+  getRentals,
+  getRentalsByUser,
+  getUserById,
+} from "@/lib/db";
+import { sendBookingEmails } from "@/lib/booking-emails";
 import { z } from "zod";
 
 export async function GET() {
@@ -39,22 +45,29 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid rental details." }, { status: 400 });
   }
 
-  const rental = await createRental({
-    userId: user.id,
-    fleetId: parsed.data.fleetId,
-    startDate: parsed.data.startDate,
-    endDate: parsed.data.endDate,
-    location: parsed.data.location,
-    notes: parsed.data.notes || "",
-  }).catch((error: unknown) => {
+  const profile = await getUserById(user.id);
+
+  try {
+    const rental = await createRental({
+      userId: user.id,
+      fleetId: parsed.data.fleetId,
+      startDate: parsed.data.startDate,
+      endDate: parsed.data.endDate,
+      location: parsed.data.location,
+      notes: parsed.data.notes || "",
+      customerName: profile?.name || user.name,
+      customerEmail: profile?.email || user.email,
+      customerPhone: profile?.phone || "",
+    });
+
+    const emailStatus = await sendBookingEmails(rental);
+    return NextResponse.json({
+      rental: { ...rental, emailStatus },
+      emailStatus,
+    });
+  } catch (error: unknown) {
     const message =
       error instanceof Error ? error.message : "Could not create booking.";
-    return { error: message };
-  });
-
-  if ("error" in rental) {
-    return NextResponse.json({ error: rental.error }, { status: 400 });
+    return NextResponse.json({ error: message }, { status: 400 });
   }
-
-  return NextResponse.json({ rental });
 }

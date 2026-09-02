@@ -282,11 +282,24 @@ export async function createSeedDatabase(): Promise<Database> {
       showTeam: true,
       showGallery: true,
       showChat: true,
+      sitePublished: true,
       footerText:
         "Earthmoving machines for mining, construction, agriculture, and energy.",
       updatedAt: now,
     },
     chatThreads: [],
     chatMessages: [],
+    mailSettings: {
+      enabled: false,
+      host: "smtp.gmail.com",
+      port: 465,
+      secure: true,
+      user: "",
+      pass: "",
+      fromName: "AXLE Inc. Ltd",
+      fromEmail: "rentals@axle.rw",
+    },
+    emailLogs: [],
+    contactMessages: [],
   };
 }

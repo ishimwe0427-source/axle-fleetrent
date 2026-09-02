@@ -7,6 +7,7 @@ type Row = {
   id: string;
   userName: string;
   userEmail: string;
+  userPhone: string;
   machineName: string;
   startDate: string;
   endDate: string;
@@ -14,6 +15,7 @@ type Row = {
   notes: string;
   status: RentalStatus;
   createdAt: string;
+  emailStatus?: "sent" | "failed" | "skipped";
 };
 
 const statuses: RentalStatus[] = [
@@ -83,9 +85,13 @@ export function AdminRentals({ initial }: { initial: Row[] }) {
               </h3>
               <p className="mt-2 text-sm text-white/75">
                 {row.userName} · {row.userEmail}
+                {row.userPhone ? ` · ${row.userPhone}` : ""}
               </p>
               <p className="mt-1 text-sm text-white/55">
                 {row.startDate} → {row.endDate} · {row.location}
+              </p>
+              <p className="mt-1 text-xs uppercase tracking-wider text-white/40">
+                Confirmation email: {row.emailStatus || "pending"}
               </p>
               {row.notes && (
                 <p className="mt-3 text-sm text-white/65">{row.notes}</p>

@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { isStaff } from "@/lib/types";
-import { updateRentalStatus } from "@/lib/db";
+import { getRentalById, updateRentalStatus } from "@/lib/db";
+import { sendBookingStatusEmail } from "@/lib/booking-emails";
 import { z } from "zod";
 
 const schema = z.object({
@@ -26,5 +27,7 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "Rental not found." }, { status: 404 });
   }
 
-  return NextResponse.json({ rental });
+  const fresh = (await getRentalById(rental.id)) || rental;
+  const emailStatus = await sendBookingStatusEmail(fresh);
+  return NextResponse.json({ rental: fresh, emailStatus });
 }

@@ -97,6 +97,7 @@ export function RentForm({
             name="startDate"
             type="date"
             required
+            min={new Date().toISOString().slice(0, 10)}
             className="mt-2 w-full border border-white/15 bg-stone-950 px-4 py-3 text-white outline-none focus:border-amber-400"
           />
         </label>
@@ -108,6 +109,7 @@ export function RentForm({
             name="endDate"
             type="date"
             required
+            min={new Date().toISOString().slice(0, 10)}
             className="mt-2 w-full border border-white/15 bg-stone-950 px-4 py-3 text-white outline-none focus:border-amber-400"
           />
         </label>
@@ -144,7 +146,8 @@ export function RentForm({
       {error && <p className="text-sm text-red-300">{error}</p>}
       {success && (
         <p className="text-sm text-emerald-300">
-          Booking submitted. Redirecting to your dashboard…
+          Booking submitted. An official confirmation is going to your email.
+          Opening your dashboard…
         </p>
       )}
 

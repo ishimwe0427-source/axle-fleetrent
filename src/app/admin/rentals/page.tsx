@@ -17,8 +17,9 @@ export default async function AdminRentalsPage() {
       const machine = fleet.find((f) => f.id === rental.fleetId);
       return {
         ...rental,
-        userName: user?.name || "Unknown",
-        userEmail: user?.email || "",
+        userName: user?.name || rental.customerName || "Unknown",
+        userEmail: user?.email || rental.customerEmail || "",
+        userPhone: user?.phone || rental.customerPhone || "",
         machineName: machine?.name || "Equipment",
       };
     }),

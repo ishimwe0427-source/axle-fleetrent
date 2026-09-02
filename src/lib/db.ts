@@ -5,10 +5,13 @@ import type {
   Branding,
   ChatMessage,
   ChatThread,
+  ContactMessage,
   Database,
+  EmailLog,
   FleetItem,
   GalleryCategory,
   HeroSlide,
+  MailSettings,
   RentalRequest,
   SiteContent,
   User,
@@ -30,7 +33,10 @@ async function ensureDb(): Promise<Database> {
       !parsed.categories ||
       !parsed.branding ||
       !parsed.chatThreads ||
-      !parsed.chatMessages;
+      !parsed.chatMessages ||
+      !parsed.mailSettings ||
+      !parsed.emailLogs ||
+      !parsed.contactMessages;
 
     if (needsMigrate) {
       // Keep real users if present, but drop known demo accounts.
@@ -44,6 +50,8 @@ async function ensureDb(): Promise<Database> {
         ...(parsed.branding || {}),
         logoHeight: parsed.branding?.logoHeight ?? seed.branding.logoHeight,
         ctaLabel: parsed.branding?.ctaLabel ?? seed.branding.ctaLabel,
+        sitePublished:
+          parsed.branding?.sitePublished ?? seed.branding.sitePublished,
         navItems: parsed.branding?.navItems?.length
           ? parsed.branding.navItems
           : seed.branding.navItems,
@@ -51,28 +59,40 @@ async function ensureDb(): Promise<Database> {
       const merged: Database = {
         users: hasSuper ? users : [...seed.users, ...users],
         fleet: parsed.fleet || seed.fleet,
-        rentals: parsed.rentals || [],
+        rentals: (parsed.rentals || []).map(normalizeRental),
         content: parsed.content || seed.content,
         slides: parsed.slides || seed.slides,
         categories: parsed.categories || seed.categories,
         branding,
         chatThreads: parsed.chatThreads || [],
         chatMessages: parsed.chatMessages || [],
+        mailSettings: parsed.mailSettings || seed.mailSettings,
+        emailLogs: parsed.emailLogs || [],
+        contactMessages: parsed.contactMessages || [],
       };
       await writeDb(merged);
       return merged;
     }
     const db = parsed as Database;
-    // Soft-fill new branding fields on older DBs without full rewrite.
-    if (db.branding && (db.branding.logoHeight == null || !db.branding.ctaLabel)) {
+    if (
+      db.branding &&
+      (db.branding.logoHeight == null ||
+        !db.branding.ctaLabel ||
+        db.branding.sitePublished == null)
+    ) {
       db.branding = {
         ...seed.branding,
         ...db.branding,
         logoHeight: db.branding.logoHeight ?? seed.branding.logoHeight,
         ctaLabel: db.branding.ctaLabel ?? seed.branding.ctaLabel,
+        sitePublished: db.branding.sitePublished ?? seed.branding.sitePublished,
       };
       await writeDb(db);
     }
+    db.rentals = db.rentals.map(normalizeRental);
+    db.mailSettings = db.mailSettings || seed.mailSettings;
+    db.emailLogs = db.emailLogs || [];
+    db.contactMessages = db.contactMessages || [];
     return db;
   } catch {
     const seed = await createSeedDatabase();
@@ -84,6 +104,15 @@ async function ensureDb(): Promise<Database> {
 async function writeDb(db: Database) {
   await fs.mkdir(DATA_DIR, { recursive: true });
   await fs.writeFile(DB_PATH, JSON.stringify(db, null, 2), "utf8");
+}
+
+function normalizeRental(rental: RentalRequest): RentalRequest {
+  return {
+    ...rental,
+    customerName: rental.customerName || "",
+    customerEmail: rental.customerEmail || "",
+    customerPhone: rental.customerPhone || "",
+  };
 }
 
 export async function getDb(): Promise<Database> {
@@ -305,7 +334,7 @@ function syncFleetAvailability(db: Database, fleetId: string) {
 }
 
 export async function createRental(
-  rental: Omit<RentalRequest, "id" | "createdAt" | "status">,
+  rental: Omit<RentalRequest, "id" | "createdAt" | "status" | "emailStatus">,
 ): Promise<RentalRequest> {
   const db = await ensureDb();
   const machine = db.fleet.find((f) => f.id === rental.fleetId);
@@ -317,11 +346,19 @@ export async function createRental(
       "This machine is currently booked on site and is not available.",
     );
   }
+  if (rental.endDate < rental.startDate) {
+    throw new Error("End date must be on or after the start date.");
+  }
+  const today = new Date().toISOString().slice(0, 10);
+  if (rental.startDate < today) {
+    throw new Error("Start date cannot be in the past.");
+  }
   const created: RentalRequest = {
     ...rental,
     id: `rent_${Date.now()}`,
     status: "pending",
     createdAt: new Date().toISOString(),
+    emailStatus: "skipped",
   };
   db.rentals.push(created);
   await writeDb(db);
@@ -429,6 +466,75 @@ export async function setChatThreadStatus(
   thread.updatedAt = new Date().toISOString();
   await writeDb(db);
   return thread;
+}
+
+export async function getMailSettings(): Promise<MailSettings> {
+  const db = await ensureDb();
+  return db.mailSettings;
+}
+
+export async function updateMailSettings(
+  patch: Partial<MailSettings>,
+): Promise<MailSettings> {
+  const db = await ensureDb();
+  db.mailSettings = { ...db.mailSettings, ...patch };
+  await writeDb(db);
+  return db.mailSettings;
+}
+
+export async function addEmailLog(
+  log: Omit<EmailLog, "id" | "createdAt">,
+): Promise<EmailLog> {
+  const db = await ensureDb();
+  const entry: EmailLog = {
+    ...log,
+    id: `email_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+    createdAt: new Date().toISOString(),
+  };
+  db.emailLogs.unshift(entry);
+  db.emailLogs = db.emailLogs.slice(0, 200);
+  await writeDb(db);
+  return entry;
+}
+
+export async function getEmailLogs(limit = 40): Promise<EmailLog[]> {
+  const db = await ensureDb();
+  return db.emailLogs.slice(0, limit);
+}
+
+export async function addContactMessage(
+  input: Omit<ContactMessage, "id" | "createdAt">,
+): Promise<ContactMessage> {
+  const db = await ensureDb();
+  const created: ContactMessage = {
+    ...input,
+    id: `msg_${Date.now()}`,
+    createdAt: new Date().toISOString(),
+  };
+  db.contactMessages.unshift(created);
+  await writeDb(db);
+  return created;
+}
+
+export async function getContactMessages(): Promise<ContactMessage[]> {
+  const db = await ensureDb();
+  return db.contactMessages;
+}
+
+export async function markRentalEmailStatus(
+  id: string,
+  emailStatus: RentalRequest["emailStatus"],
+): Promise<void> {
+  const db = await ensureDb();
+  const rental = db.rentals.find((r) => r.id === id);
+  if (!rental) return;
+  rental.emailStatus = emailStatus;
+  await writeDb(db);
+}
+
+export async function getRentalById(id: string): Promise<RentalRequest | null> {
+  const db = await ensureDb();
+  return db.rentals.find((r) => r.id === id) ?? null;
 }
 
 export function formatRwf(amount: number): string {

@@ -52,6 +52,11 @@ export default async function AdminPage() {
       body: `${pending} pending · ${rentals.length} total requests.`,
     },
     {
+      href: "/admin/email",
+      title: "Official email",
+      body: "Automatic booking confirmations to the client’s email.",
+    },
+    {
       href: "/admin/chat",
       title: "Support chat",
       body: `${openChats} open · ${threads.length} conversations in archive.`,
@@ -60,6 +65,11 @@ export default async function AdminPage() {
 
   if (isSuperAdmin(session.role)) {
     cards.unshift(
+      {
+        href: "/admin/go-live",
+        title: "Go live / hide website",
+        body: "Keep this private until the owner approves, then publish.",
+      },
       {
         href: "/admin/branding",
         title: "White-label branding",
